@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>釜山行 7/5–7/10</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+  :root {
+    --sea: #1a6b8a;
+    --sea-light: #2a8aad;
+    --sea-pale: #e8f4f8;
+    --sand: #f5efe6;
+    --sand-dark: #e8ddd0;
+    --coral: #e06b4e;
+    --coral-light: #f08068;
+    --night: #1a2533;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --white: #ffffff;
+    --success: #27ae60;
+    --border: #d5e8ef;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--sand);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--night) 0%, var(--sea) 100%);
+    color: white;
+    padding: 20px 16px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+  header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; }
+  header p { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; letter-spacing: 1px; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: var(--night);
+    border-bottom: 2px solid var(--sea);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .tab.active { color: white; background: var(--sea); }
+
+  /* ── MAIN ── */
+  main { padding: 12px; max-width: 600px; margin: 0 auto; }
+
+  /* ── CHECKLIST ── */
+  .checklist-section {
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  }
+  .checklist-section h3 {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .check-item.done .check-box {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .check-item.done .check-box::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+  .check-item.done .check-label { text-decoration: line-through; color: var(--muted); }
+  .check-label { font-size: 0.88rem; }
+
+  /* ── DAY CARD ── */
+  .day-card {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    overflow: hidden;
+  }
+  .day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--sea);
+    color: white;
+    cursor: pointer;
+    user-select: none;
+  }
+  .day-header-left { display: flex; align-items: center; gap: 10px; }
+  .day-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .day-title { font-size: 0.9rem; font-weight: 500; }
+  .day-total {
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.15);
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .day-chevron { font-size: 0.7rem; opacity: 0.7; transition: transform 0.2s; }
+  .day-card.collapsed .day-chevron { transform: rotate(-90deg); }
+
+  .day-body { padding: 0 14px 14px; }
+  .day-card.collapsed .day-body { display: none; }
+
+  /* ── ACTIVITY ITEM ── */
+  .activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: grab;
+    position: relative;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item.dragging { opacity: 0.4; }
+  .activity-item.drag-over { border-top: 2px solid var(--coral); padding-top: 8px; }
+
+  .drag-handle {
+    color: #ccc;
+    font-size: 1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+    cursor: grab;
+  }
+
+  .activity-content { flex: 1; min-width: 0; }
+  .activity-time {
+    font-size: 0.7rem;
+    color: var(--sea);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .activity-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .activity-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .activity-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-top: 3px;
+    font-weight: 500;
+  }
+  .tag-food { background: #fdebd0; color: #e67e22; }
+  .tag-transport { background: #d5f5e3; color: #1e8449; }
+  .tag-activity { background: #d6eaf8; color: #1a5276; }
+  .tag-shop { background: #f9ebea; color: #cb4335; }
+  .tag-hotel { background: #f0e6ff; color: #6c3483; }
+
+  .activity-amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .amount-display {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .amount-display.has-amount { color: var(--coral); }
+  .amount-edit-btn {
+    font-size: 0.65rem;
+    color: var(--sea);
+    background: var(--sea-pale);
+    border: none;
+    padding: 2px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ── AMOUNT EDITOR ── */
+  .amount-editor {
+    background: var(--sea-pale);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    display: none;
+  }
+  .amount-editor.open { display: block; }
+  .amount-editor label { font-size: 0.72rem; color: var(--muted); display: block; margin-bottom: 3px; }
+  .editor-row { display: flex; gap: 6px; align-items: center; }
+  .editor-row input, .editor-row select {
+    font-size: 0.82rem;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: inherit;
+    color: var(--text);
+  }
+  .editor-row input { flex: 1; }
+  .editor-row select { width: 80px; }
+  .editor-row button {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+  }
+  .btn-save { background: var(--sea); color: white; }
+  .editor-note-input {
+    width: 100%;
+    font-size: 0.78rem;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-top: 5px;
+    font-family: inherit;
+    color: var(--text);
+    background: white;
+  }
+
+  /* ── ADD ACTIVITY ── */
+  .add-activity-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .add-activity-btn:hover { border-color: var(--sea); color: var(--sea); }
+
+  /* ── SUMMARY TAB ── */
+  .summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  }
+  .summary-card h3 {
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .total-big {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sea);
+    text-align: center;
+    padding: 8px 0;
+  }
+  .total-sub { font-size: 0.75rem; color: var(--muted); text-align: center; }
+  .day-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 0.88rem;
+  }
+  .day-summary-row:last-child { border-bottom: none; }
+  .day-summary-row .label { color: var(--muted); font-size: 0.8rem; }
+  .day-summary-row .amount { font-weight: 700; color: var(--text); }
+
+  .cat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 0.85rem;
+  }
+  .cat-row:last-child { border-bottom: none; }
+  .cat-row .cat-label { display: flex; align-items: center; gap: 6px; }
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex; align-items: flex-end;
+    display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 16px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .modal h3 { font-size: 1rem; font-weight: 700; margin-bottom: 14px; }
+  .modal label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 3px; margin-top: 8px; }
+  .modal input, .modal select {
+    width: 100%; padding: 9px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.9rem; font-family: inherit; color: var(--text);
+  }
+  .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-btns button {
+    flex: 1; padding: 11px;
+    border: none; border-radius: 8px;
+    font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-primary { background: var(--sea); color: white; }
+  .btn-secondary { background: var(--sand-dark); color: var(--text); }
+
+  /* ── CURRENCY TOGGLE ── */
+  .currency-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    background: white;
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .currency-btn {
+    flex: 1; padding: 6px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .currency-btn.active { background: var(--sea); color: white; border-color: var(--sea); font-weight: 700; }
+
+  /* ── EXCHANGE RATE ── */
+  .rate-bar {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rate-bar input {
+    width: 80px; padding: 3px 6px;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇰🇷 釜山行</h1>
+  <p>2025 / 7 / 5 — 7 / 10</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('itinerary')">📅 行程</div>
+  <div class="tab" onclick="switchTab('checklist')">✅ 待辦</div>
+  <div class="tab" onclick="switchTab('summary')">💰 總帳</div>
+</div>
+
+<main>
+  <div id="tab-itinerary"></div>
+  <div id="tab-checklist" style="display:none"></div>
+  <div id="tab-summary" style="display:none"></div>
+</main>
+
+<!-- ADD ACTIVITY MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>新增項目</h3>
+    <label>時間（選填）</label>
+    <input type="text" id="newTime" placeholder="e.g. 12:00">
+    <label>名稱</label>
+    <input type="text" id="newName" placeholder="e.g. 午餐 OOXX">
+    <label>類別</label>
+    <select id="newTag">
+      <option value="food">🍽️ 餐飲</option>
+      <option value="transport">🚃 交通</option>
+      <option value="activity">🎡 活動</option>
+      <option value="shop">🛍️ 購物</option>
+      <option value="hotel">🏨 住宿</option>
+    </select>
+    <label>備註（選填）</label>
+    <input type="text" id="newNote" placeholder="備用資訊">
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn-primary" onclick="confirmAdd()">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+const INITIAL_DAYS = [
+  {
+    id: 'd1', label: '7/5', title: '抵達・海雲台',
+    activities: [
+      { id:'a1', time:'11:30', name:'抵達釜山 ✈️', tag:'transport', note:'', amount:null, currency:'KRW' },
+      { id:'a2', time:'', name:'海雲台飯店 放行李', tag:'hotel', note:'', amount:null, currency:'KRW' },
+      { id:'a3', time:'', name:'水邊最高豬肉湯飯 🍲', tag:'food', note:'午餐', amount:null, currency:'KRW' },
+      { id:'a4', time:'', name:'All Sunday Bagel ☕', tag:'food', note:'下午茶', amount:null, currency:'KRW' },
+      { id:'a5', time:'', name:'新世界百貨 逛街', tag:'shop', note:'', amount:null, currency:'KRW' },
+      { id:'a6', time:'16:00', name:'83獬豸烤肉 🥩', tag:'food', note:'晚餐・候位', amount:null, currency:'KRW' },
+      { id:'a7', time:'20:00', name:'汗蒸幕・沙灘機無人秀', tag:'activity', note:'20:00 / 22:00 場次', amount:null, currency:'KRW' },
+    ]
+  },
+  {
+    id: 'd2', label: '7/6', title: '釜山塔・海岸列車・遊艇',
+    activities: [
+      { id:'b1', time:'07:00', name:'大海鮑魚粥 🍚', tag:'food', note:'早餐', amount:null, currency:'KRW' },
+      { id:'b2', time:'', name:'釜山塔', tag:'activity', note:'有Pass免預約', amount:null, currency:'KRW' },
+      { id:'b3', time:'', name:'海雲台市場 糖餅・古來思魚糕', tag:'food', note:'午餐', amount:null, currency:'KRW' },
+      { id:'b4', time:'', name:'海岸列車', tag:'transport', note:'有Pass免預約', amount:null, currency:'KRW' },
+      { id:'b5', time:'', name:'DIART COFFEE ☕', tag:'food', note:'', amount:null, currency:'KRW' },
+      { id:'b6', time:'17:00', name:'膠囊列車 🚡', tag:'transport', note:'17:00–17:30 步道前往', amount:null, currency:'KRW' },
+      { id:'b7', time:'', name:'31公分海鮮刀削麵 🍜', tag:'food', note:'晚餐', amount:null, currency:'KRW' },
+      { id:'b8', time:'20:30', name:'鑽石遊艇 ⛵', tag:'activity', note:'⚠️ 需預約！', amount:null, currency:'KRW' },
+    ]
+  },
+  {
+    id: 'd3', label: '7/7', title: '影島・松島',
+    activities: [
+      { id:'c1', time:'', name:'海雲台錦繡河豚鍋 🐡', tag:'food', note:'早餐・24hr', amount:null, currency:'KRW' },
+      { id:'c2', time:'', name:'影島白淺灘文化村', tag:'activity', note:'', amount:null, currency:'KRW' },
+      { id:'c3', time:'', name:'影島海女村 🦪', tag:'food', note:'午餐', amount:null, currency:'KRW' },
+      { id:'c4', time:'', name:'松島 海景咖啡廳 ☕', tag:'food', note:'', amount:null, currency:'KRW' },
+      { id:'c5', time:'', name:'玻璃步道・海水浴場', tag:'activity', note:'', amount:null, currency:'KRW' },
+      { id:'c6', time:'', name:'烤扇貝鮑魚 🦪', tag:'food', note:'晚餐', amount:null, currency:'KRW' },
+      { id:'c7', time:'', name:'影島纜車', tag:'activity', note:'有Pass免預約・到21:00', amount:null, currency:'KRW' },
+    ]
+  },
+  {
+    id: 'd4', label: '7/8', title: '甘川・南浦洞・影島大橋',
+    activities: [
+      { id:'d1a', time:'08:00', name:'海雲台舒暢鱈魚湯 🐟', tag:'food', note:'早餐', amount:null, currency:'KRW' },
+      { id:'d2a', time:'10:00', name:'甘川文化村・拍手翻書', tag:'activity', note:'10:00開', amount:null, currency:'KRW' },
+      { id:'d3a', time:'', name:'扎嘎其市場 南浦洞', tag:'food', note:'午餐', amount:null, currency:'KRW' },
+      { id:'d4a', time:'14:00', name:'影島大橋直立', tag:'activity', note:'14:00 橋直立', amount:null, currency:'KRW' },
+      { id:'d5a', time:'', name:'BIFF廣場 晚餐 🎬', tag:'food', note:'晚餐', amount:null, currency:'KRW' },
+      { id:'d6a', time:'', name:'樂天市場 購物 🛒', tag:'shop', note:'', amount:null, currency:'KRW' },
+    ]
+  },
+  {
+    id: 'd5', label: '7/9', title: '廣安・Running Man・西面',
+    activities: [
+      { id:'e1', time:'09:00', name:'廣安李 Working Holiday ☕', tag:'food', note:'早餐', amount:null, currency:'KRW' },
+      { id:'e2', time:'11:00', name:'Running Man 體驗館 🎮', tag:'activity', note:'11:00開・⚠️ 需預約', amount:null, currency:'KRW' },
+      { id:'e3', time:'', name:'西面咖啡街 點心', tag:'food', note:'', amount:null, currency:'KRW' },
+      { id:'e4', time:'', name:'西面 Lasoop 晚餐', tag:'food', note:'晚餐', amount:null, currency:'KRW' },
+      { id:'e5', time:'', name:'逛街購物', tag:'shop', note:'', amount:null, currency:'KRW' },
+      { id:'e6', time:'', name:'烤鰻魚定食 🐟', tag:'food', note:'宵夜', amount:null, currency:'KRW' },
+    ]
+  },
+  {
+    id: 'd6', label: '7/10', title: '回台灣 ✈️',
+    activities: [
+      { id:'f1', time:'', name:'買早餐・退房', tag:'hotel', note:'', amount:null, currency:'KRW' },
+      { id:'f2', time:'11:30', name:'搭飛機回台 ✈️', tag:'transport', note:'11:30 起飛', amount:null, currency:'KRW' },
+    ]
+  },
+];
+
+const INITIAL_CHECKS = [
+  { id:'chk1', label:'釜山 Pass', done: true },
+  { id:'chk2', label:'eSIM', done: true },
+  { id:'chk3', label:'預約鑽石遊艇', done: false },
+  { id:'chk4', label:'預約 Running Man 體驗館', done: false },
+];
+
+// ═══════════════════════════════════════════════
+// STATE (localStorage)
+// ═══════════════════════════════════════════════
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('busan2025');
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+}
+
+function saveState() {
+  localStorage.setItem('busan2025', JSON.stringify({ days, checks, exchangeRate, displayCurrency }));
+}
+
+let saved = loadState();
+let days = saved ? saved.days : INITIAL_DAYS;
+let checks = saved ? saved.checks : INITIAL_CHECKS;
+let exchangeRate = saved ? saved.exchangeRate : 0.023; // 1 KRW ≈ 0.023 TWD
+let displayCurrency = saved ? saved.displayCurrency : 'KRW';
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+
+function fmt(amount, cur) {
+  if (!amount && amount !== 0) return '—';
+  if (cur === 'KRW') return '₩' + Number(amount).toLocaleString();
+  return 'NT$' + Math.round(amount * exchangeRate).toLocaleString();
+}
+
+function fmtDisplay(amount, origCur) {
+  if (!amount && amount !== 0) return null;
+  if (displayCurrency === origCur) return fmt(amount, origCur);
+  if (displayCurrency === 'TWD') return 'NT$' + Math.round(amount * exchangeRate).toLocaleString();
+  return '₩' + Math.round(amount / exchangeRate).toLocaleString();
+}
+
+function dayTotal(day) {
+  return day.activities.reduce((s, a) => {
+    if (!a.amount) return s;
+    if (a.currency === displayCurrency) return s + Number(a.amount);
+    if (displayCurrency === 'TWD') return s + Number(a.amount) * exchangeRate;
+    return s + Number(a.amount) / exchangeRate;
+  }, 0);
+}
+
+function grandTotal() {
+  return days.reduce((s, d) => s + dayTotal(d), 0);
+}
+
+function catTotals() {
+  const map = { food:0, transport:0, activity:0, shop:0, hotel:0 };
+  days.forEach(d => d.activities.forEach(a => {
+    if (!a.amount) return;
+    let v = Number(a.amount);
+    if (a.currency !== displayCurrency) {
+      v = displayCurrency === 'TWD' ? v * exchangeRate : v / exchangeRate;
+    }
+    map[a.tag] = (map[a.tag] || 0) + v;
+  }));
+  return map;
+}
+
+const TAG_LABELS = { food:'🍽️ 餐飲', transport:'🚃 交通', activity:'🎡 活動', shop:'🛍️ 購物', hotel:'🏨 住宿' };
+const TAG_COLORS = { food:'#e67e22', transport:'#1e8449', activity:'#1a5276', shop:'#cb4335', hotel:'#6c3483' };
+
+// ═══════════════════════════════════════════════
+// RENDER ITINERARY
+// ═══════════════════════════════════════════════
+
+function renderItinerary() {
+  const el = document.getElementById('tab-itinerary');
+  el.innerHTML = '';
+
+  days.forEach((day, di) => {
+    const total = dayTotal(day);
+    const card = document.createElement('div');
+    card.className = 'day-card';
+    card.dataset.dayId = day.id;
+
+    card.innerHTML = `
+      <div class="day-header" onclick="toggleDay('${day.id}')">
+        <div class="day-header-left">
+          <span class="day-badge">${day.label}</span>
+          <span class="day-title">${day.title}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${total > 0 ? `<span class="day-total">${displayCurrency==='KRW'?'₩':'NT$'}${Math.round(total).toLocaleString()}</span>` : ''}
+          <span class="day-chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <div class="activities-list" data-day="${day.id}">
+          ${day.activities.map((a, ai) => renderActivity(a, day.id, ai)).join('')}
+        </div>
+        <button class="add-activity-btn" onclick="openAddModal('${day.id}')">＋ 新增項目</button>
+      </div>
+    `;
+    el.appendChild(card);
+  });
+
+  initDragDrop();
+}
+
+function renderActivity(a, dayId, ai) {
+  const amtDisplay = a.amount ? fmtDisplay(a.amount, a.currency) : null;
+  return `
+    <div class="activity-item" draggable="true" data-id="${a.id}" data-day="${dayId}">
+      <span class="drag-handle">⠿</span>
+      <div class="activity-content">
+        ${a.time ? `<div class="activity-time">${a.time}</div>` : ''}
+        <div class="activity-name">${a.name}</div>
+        ${a.note ? `<div class="activity-note">${a.note}</div>` : ''}
+        <span class="activity-tag tag-${a.tag}">${TAG_LABELS[a.tag]}</span>
+        <div class="amount-editor" id="editor-${a.id}">
+          <label>金額</label>
+          <div class="editor-row">
+            <input type="number" id="amt-${a.id}" placeholder="0" value="${a.amount||''}" onkeydown="if(event.key==='Enter')saveAmount('${a.id}','${dayId}')">
+            <select id="cur-${a.id}">
+              <option value="KRW" ${a.currency==='KRW'?'selected':''}>₩ KRW</option>
+              <option value="TWD" ${a.currency==='TWD'?'selected':''}>NT$ TWD</option>
+            </select>
+            <button class="btn-save" onclick="saveAmount('${a.id}','${dayId}')">✓</button>
+          </div>
+          <input type="text" class="editor-note-input" id="note-${a.id}" placeholder="備註（選填）" value="${a.note||''}">
+        </div>
+      </div>
+      <div class="activity-amount">
+        <span class="amount-display ${amtDisplay?'has-amount':''}">${amtDisplay||'未記帳'}</span>
+        <button class="amount-edit-btn" onclick="toggleEditor('${a.id}')">✏️ 記帳</button>
+        <button class="amount-edit-btn" style="color:var(--coral);background:#fdebd0" onclick="deleteActivity('${a.id}','${dayId}')">🗑️</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleDay(dayId) {
+  const card = document.querySelector(`.day-card[data-day-id="${dayId}"]`);
+  card.classList.toggle('collapsed');
+}
+
+function toggleEditor(actId) {
+  const ed = document.getElementById('editor-' + actId);
+  const isOpen = ed.classList.contains('open');
+  // close all
+  document.querySelectorAll('.amount-editor.open').forEach(e => e.classList.remove('open'));
+  if (!isOpen) {
+    ed.classList.add('open');
+    document.getElementById('amt-' + actId).focus();
+  }
+}
+
+function saveAmount(actId, dayId) {
+  const day = days.find(d => d.id === dayId);
+  const act = day.activities.find(a => a.id === actId);
+  const val = parseFloat(document.getElementById('amt-' + actId).value);
+  act.amount = isNaN(val) ? null : val;
+  act.currency = document.getElementById('cur-' + actId).value;
+  act.note = document.getElementById('note-' + actId).value;
+  saveState();
+  renderItinerary();
+}
+
+function deleteActivity(actId, dayId) {
+  const day = days.find(d => d.id === dayId);
+  day.activities = day.activities.filter(a => a.id !== actId);
+  saveState();
+  renderItinerary();
+}
+
+// ═══════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════
+
+let dragId = null, dragDayId = null;
+
+function initDragDrop() {
+  document.querySelectorAll('.activity-item').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragId = el.dataset.id;
+      dragDayId = el.dataset.day;
+      setTimeout(() => el.classList.add('dragging'), 0);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.activity-item').forEach(e => e.classList.remove('drag-over'));
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      document.querySelectorAll('.activity-item').forEach(e => e.classList.remove('drag-over'));
+      if (el.dataset.id !== dragId) el.classList.add('drag-over');
+    });
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      const targetId = el.dataset.id;
+      const targetDayId = el.dataset.day;
+      if (targetId === dragId) return;
+
+      const srcDay = days.find(d => d.id === dragDayId);
+      const tgtDay = days.find(d => d.id === targetDayId);
+      const srcIdx = srcDay.activities.findIndex(a => a.id === dragId);
+      const tgtIdx = tgtDay.activities.findIndex(a => a.id === targetId);
+
+      const [moved] = srcDay.activities.splice(srcIdx, 1);
+      if (dragDayId !== targetDayId) {
+        tgtDay.activities.splice(tgtIdx, 0, moved);
+      } else {
+        srcDay.activities.splice(tgtIdx, 0, moved);
+      }
+      saveState();
+      renderItinerary();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ADD ACTIVITY MODAL
+// ═══════════════════════════════════════════════
+
+let currentAddDayId = null;
+
+function openAddModal(dayId) {
+  currentAddDayId = dayId;
+  document.getElementById('newTime').value = '';
+  document.getElementById('newName').value = '';
+  document.getElementById('newNote').value = '';
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function confirmAdd() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) return;
+  const day = days.find(d => d.id === currentAddDayId);
+  day.activities.push({
+    id: 'x' + Date.now(),
+    time: document.getElementById('newTime').value.trim(),
+    name,
+    tag: document.getElementById('newTag').value,
+    note: document.getElementById('newNote').value.trim(),
+    amount: null,
+    currency: 'KRW'
+  });
+  saveState();
+  closeModal();
+  renderItinerary();
+}
+
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ═══════════════════════════════════════════════
+// RENDER CHECKLIST
+// ═══════════════════════════════════════════════
+
+function renderChecklist() {
+  const el = document.getElementById('tab-checklist');
+  const completed = checks.filter(c => c.done).length;
+  el.innerHTML = `
+    <div class="checklist-section">
+      <h3>行前必辦 ${completed}/${checks.length}</h3>
+      ${checks.map(c => `
+        <div class="check-item ${c.done?'done':''}" onclick="toggleCheck('${c.id}')">
+          <div class="check-box"></div>
+          <span class="check-label">${c.label}</span>
+        </div>
+      `).join('')}
+      <div style="margin-top:10px">
+        <div style="display:flex;gap:6px">
+          <input type="text" id="newCheckInput" placeholder="新增待辦事項…" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit">
+          <button onclick="addCheck()" style="padding:7px 14px;background:var(--sea);color:white;border:none;border-radius:8px;font-family:inherit;font-size:0.85rem;cursor:pointer">＋</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleCheck(id) {
+  const c = checks.find(x => x.id === id);
+  c.done = !c.done;
+  saveState();
+  renderChecklist();
+}
+
+function addCheck() {
+  const inp = document.getElementById('newCheckInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  checks.push({ id: 'c' + Date.now(), label: val, done: false });
+  saveState();
+  renderChecklist();
+}
+
+// ═══════════════════════════════════════════════
+// RENDER SUMMARY
+// ═══════════════════════════════════════════════
+
+function renderSummary() {
+  const el = document.getElementById('tab-summary');
+  const total = grandTotal();
+  const cats = catTotals();
+  const sym = displayCurrency === 'KRW' ? '₩' : 'NT$';
+
+  el.innerHTML = `
+    <div class="rate-bar">
+      <span>匯率 1 KRW =</span>
+      <input type="number" id="rateInput" value="${exchangeRate}" step="0.001">
+      <span>TWD</span>
+      <button onclick="updateRate()" style="padding:3px 10px;background:var(--sea);color:white;border:none;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit">更新</button>
+    </div>
+    <div class="currency-bar">
+      <button class="currency-btn ${displayCurrency==='KRW'?'active':''}" onclick="setCurrency('KRW')">韓元 ₩ KRW</button>
+      <button class="currency-btn ${displayCurrency==='TWD'?'active':''}" onclick="setCurrency('TWD')">台幣 NT$ TWD</button>
+    </div>
+    <div class="summary-card">
+      <h3>旅行總計</h3>
+      <div class="total-big">${sym}${Math.round(total).toLocaleString()}</div>
+      <div class="total-sub">已記帳項目合計</div>
+    </div>
+    <div class="summary-card">
+      <h3>每日明細</h3>
+      ${days.map(d => {
+        const dt = dayTotal(d);
+        return `<div class="day-summary-row">
+          <span>${d.label} ${d.title}</span>
+          <span class="amount">${dt>0?sym+Math.round(dt).toLocaleString():'—'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="summary-card">
+      <h3>類別分析</h3>
+      ${Object.entries(cats).map(([k,v]) => `
+        <div class="cat-row">
+          <div class="cat-label">
+            <div class="cat-dot" style="background:${TAG_COLORS[k]}"></div>
+            <span>${TAG_LABELS[k]}</span>
+          </div>
+          <span style="font-weight:700;color:${TAG_COLORS[k]}">${v>0?sym+Math.round(v).toLocaleString():'—'}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function updateRate() {
+  const v = parseFloat(document.getElementById('rateInput').value);
+  if (!isNaN(v) && v > 0) { exchangeRate = v; saveState(); renderAll(); }
+}
+
+function setCurrency(cur) {
+  displayCurrency = cur;
+  saveState();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+
+let currentTab = 'itinerary';
+
+function switchTab(tab) {
+  currentTab = tab;
+  ['itinerary','checklist','summary'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+    document.querySelectorAll('.tab')[['itinerary','checklist','summary'].indexOf(t)].classList.toggle('active', t===tab);
+  });
+  renderAll();
+}
+
+function renderAll() {
+  renderItinerary();
+  renderChecklist();
+  renderSummary();
+}
+
+renderAll();
+</script>
+</body>
+</html>
