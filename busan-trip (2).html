@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>釜山行 7/5–7/10</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+  :root {
+    --sea:#1a6b8a; --sea-pale:#e8f4f8; --sand:#f5efe6; --sand-dark:#e8ddd0;
+    --coral:#e06b4e; --night:#1a2533; --text:#2c3e50; --muted:#7f8c8d;
+    --success:#27ae60; --border:#d5e8ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans TC',sans-serif;background:var(--sand);color:var(--text);min-height:100vh;}
+
+  header{background:linear-gradient(135deg,var(--night),var(--sea));color:white;padding:18px 16px 14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+  header h1{font-size:1.25rem;font-weight:700;letter-spacing:2px;}
+  header p{font-size:.72rem;opacity:.65;margin-top:2px;}
+
+  .tabs{display:flex;background:var(--night);border-bottom:2px solid var(--sea);}
+  .tab{flex:1;padding:10px 4px;text-align:center;font-size:.78rem;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s;font-weight:500;}
+  .tab.active{color:#fff;background:var(--sea);}
+
+  main{padding:12px;max-width:600px;margin:0 auto;}
+
+  /* DAY CARD */
+  .day-card{background:#fff;border-radius:12px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;}
+  .day-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--sea);color:#fff;cursor:pointer;user-select:none;}
+  .day-header-left{display:flex;align-items:center;gap:9px;}
+  .day-badge{background:rgba(255,255,255,.2);border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:700;}
+  .day-title{font-size:.88rem;font-weight:500;}
+  .day-total{font-size:.75rem;background:rgba(255,255,255,.15);padding:3px 8px;border-radius:20px;}
+  .day-chevron{font-size:.65rem;opacity:.7;transition:transform .2s;}
+  .day-card.collapsed .day-chevron{transform:rotate(-90deg);}
+  .day-body{padding:0 14px 12px;}
+  .day-card.collapsed .day-body{display:none;}
+
+  /* ACTIVITY ROW */
+  .activity-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;position:relative;}
+  .activity-item:last-child{border-bottom:none;}
+  .activity-item.dragging{opacity:.4;}
+  .activity-item.drag-over{border-top:2px solid var(--coral);padding-top:7px;}
+  .drag-handle{color:#ccc;font-size:1.1rem;flex-shrink:0;cursor:grab;touch-action:none;}
+  .activity-content{flex:1;min-width:0;}
+  .activity-time{font-size:.68rem;color:var(--sea);font-weight:700;margin-bottom:1px;}
+  .activity-name{font-size:.88rem;font-weight:500;line-height:1.3;}
+  .activity-note{font-size:.72rem;color:var(--muted);margin-top:1px;}
+  .activity-tag{display:inline-block;font-size:.62rem;padding:1px 6px;border-radius:10px;margin-top:3px;font-weight:500;}
+  .tag-food{background:#fdebd0;color:#e67e22;}
+  .tag-transport{background:#d5f5e3;color:#1e8449;}
+  .tag-activity{background:#d6eaf8;color:#1a5276;}
+  .tag-shop{background:#f9ebea;color:#cb4335;}
+  .tag-hotel{background:#f0e6ff;color:#6c3483;}
+
+  .activity-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+  .amount-pill{font-size:.8rem;font-weight:700;color:var(--coral);white-space:nowrap;}
+  .amount-pill.empty{color:#ccc;font-weight:400;font-size:.75rem;}
+  .edit-btn{font-size:.68rem;color:var(--sea);background:var(--sea-pale);border:none;padding:3px 8px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+  .del-btn{font-size:.68rem;color:var(--coral);background:#fdebd0;border:none;padding:3px 8px;border-radius:8px;cursor:pointer;}
+
+  .add-activity-btn{width:100%;margin-top:8px;padding:8px;background:none;border:1.5px dashed var(--border);border-radius:8px;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .2s;}
+  .add-activity-btn:hover{border-color:var(--sea);color:var(--sea);}
+
+  /* CHECKLIST */
+  .checklist-section{background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+  .checklist-section h3{font-size:.78rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+  .check-item:last-child{border-bottom:none;}
+  .check-box{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+  .check-item.done .check-box{background:var(--success);border-color:var(--success);}
+  .check-item.done .check-box::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
+  .check-item.done .check-label{text-decoration:line-through;color:var(--muted);}
+  .check-label{font-size:.88rem;}
+
+  /* SUMMARY */
+  .summary-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+  .summary-card h3{font-size:.78rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .total-big{font-size:2rem;font-weight:700;color:var(--sea);text-align:center;padding:8px 0;}
+  .total-sub{font-size:.73rem;color:var(--muted);text-align:center;}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:.86rem;}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .lbl{color:var(--muted);font-size:.78rem;}
+  .cat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+  .rate-bar{background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.8rem;color:var(--muted);box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .rate-bar input{width:72px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;text-align:center;}
+  .currency-bar{display:flex;gap:6px;margin-bottom:12px;background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .cur-btn{flex:1;padding:7px;border:1.5px solid var(--border);border-radius:7px;background:none;font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .2s;}
+  .cur-btn.active{background:var(--sea);color:#fff;border-color:var(--sea);font-weight:700;}
+
+  /* ── MODAL (bottom sheet) ── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+  .overlay.open{display:flex;}
+  .sheet{background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 32px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;}
+  .sheet h3{font-size:1rem;font-weight:700;margin-bottom:16px;}
+  .sheet label{font-size:.76rem;color:var(--muted);display:block;margin-bottom:4px;margin-top:10px;}
+  .sheet label:first-of-type{margin-top:0;}
+  .sheet input,.sheet select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;font-size:.92rem;font-family:inherit;color:var(--text);outline:none;}
+  .sheet input:focus,.sheet select:focus{border-color:var(--sea);}
+  .sheet-btns{display:flex;gap:8px;margin-top:18px;}
+  .sheet-btns button{flex:1;padding:12px;border:none;border-radius:9px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-primary{background:var(--sea);color:#fff;}
+  .btn-secondary{background:var(--sand-dark);color:var(--text);}
+  .btn-danger{background:#fdebd0;color:var(--coral);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇰🇷 釜山行</h1>
+  <p>2025 / 7 / 5 — 7 / 10</p>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('itinerary')">📅 行程</div>
+  <div class="tab" onclick="switchTab('checklist')">✅ 待辦</div>
+  <div class="tab" onclick="switchTab('summary')">💰 總帳</div>
+</div>
+<main>
+  <div id="tab-itinerary"></div>
+  <div id="tab-checklist" style="display:none"></div>
+  <div id="tab-summary" style="display:none"></div>
+</main>
+
+<!-- 記帳 MODAL -->
+<div class="overlay" id="amtModal">
+  <div class="sheet">
+    <h3 id="amtModalTitle">記帳</h3>
+    <label>金額</label>
+    <input type="number" id="amtInput" inputmode="numeric" placeholder="例：25000">
+    <label>幣別</label>
+    <select id="curInput">
+      <option value="KRW">₩ 韓元 KRW</option>
+      <option value="TWD">NT$ 台幣 TWD</option>
+    </select>
+    <label>備註（選填）</label>
+    <input type="text" id="noteInput" placeholder="備用資訊">
+    <div class="sheet-btns">
+      <button class="btn-secondary" onclick="closeModal('amtModal')">取消</button>
+      <button class="btn-danger" id="amtClearBtn" onclick="clearAmount()">清除</button>
+      <button class="btn-primary" onclick="saveAmount()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增項目 MODAL -->
+<div class="overlay" id="addModal">
+  <div class="sheet">
+    <h3 id="addModalTitle">新增項目</h3>
+    <label>時間（選填）</label>
+    <input type="text" id="newTime" placeholder="例：12:00">
+    <label>名稱</label>
+    <input type="text" id="newName" placeholder="例：午餐 OOXX">
+    <label>類別</label>
+    <select id="newTag">
+      <option value="food">🍽️ 餐飲</option>
+      <option value="transport">🚃 交通</option>
+      <option value="activity">🎡 活動</option>
+      <option value="shop">🛍️ 購物</option>
+      <option value="hotel">🏨 住宿</option>
+    </select>
+    <label>備註（選填）</label>
+    <input type="text" id="newNote" placeholder="備用資訊">
+    <div class="sheet-btns">
+      <button class="btn-secondary" onclick="closeModal('addModal')">取消</button>
+      <button class="btn-primary" onclick="confirmAdd()">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const INITIAL_DAYS = [
+  { id:'d1', label:'7/5', title:'抵達・海雲台', activities:[
+    {id:'a1',time:'11:30',name:'抵達釜山 ✈️',tag:'transport',note:'',amount:null,currency:'KRW'},
+    {id:'a2',time:'',name:'海雲台飯店 放行李',tag:'hotel',note:'',amount:null,currency:'KRW'},
+    {id:'a3',time:'',name:'水邊最高豬肉湯飯 🍲',tag:'food',note:'午餐',amount:null,currency:'KRW'},
+    {id:'a4',time:'',name:'All Sunday Bagel ☕',tag:'food',note:'下午茶',amount:null,currency:'KRW'},
+    {id:'a5',time:'',name:'新世界百貨 逛街',tag:'shop',note:'',amount:null,currency:'KRW'},
+    {id:'a6',time:'16:00',name:'83獬豸烤肉 🥩',tag:'food',note:'晚餐・候位',amount:null,currency:'KRW'},
+    {id:'a7',time:'20:00',name:'汗蒸幕・沙灘機無人秀',tag:'activity',note:'20:00 / 22:00 場次',amount:null,currency:'KRW'},
+  ]},
+  { id:'d2', label:'7/6', title:'釜山塔・海岸列車・遊艇', activities:[
+    {id:'b1',time:'07:00',name:'大海鮑魚粥 🍚',tag:'food',note:'早餐',amount:null,currency:'KRW'},
+    {id:'b2',time:'',name:'釜山塔',tag:'activity',note:'有Pass免預約',amount:null,currency:'KRW'},
+    {id:'b3',time:'',name:'海雲台市場 糖餅・古來思魚糕',tag:'food',note:'午餐',amount:null,currency:'KRW'},
+    {id:'b4',time:'',name:'海岸列車',tag:'transport',note:'有Pass免預約',amount:null,currency:'KRW'},
+    {id:'b5',time:'',name:'DIART COFFEE ☕',tag:'food',note:'',amount:null,currency:'KRW'},
+    {id:'b6',time:'17:00',name:'膠囊列車 🚡',tag:'transport',note:'17:00–17:30',amount:null,currency:'KRW'},
+    {id:'b7',time:'',name:'31公分海鮮刀削麵 🍜',tag:'food',note:'晚餐',amount:null,currency:'KRW'},
+    {id:'b8',time:'20:30',name:'鑽石遊艇 ⛵',tag:'activity',note:'⚠️ 需預約！',amount:null,currency:'KRW'},
+  ]},
+  { id:'d3', label:'7/7', title:'影島・松島', activities:[
+    {id:'c1',time:'',name:'海雲台錦繡河豚鍋 🐡',tag:'food',note:'早餐・24hr',amount:null,currency:'KRW'},
+    {id:'c2',time:'',name:'影島白淺灘文化村',tag:'activity',note:'',amount:null,currency:'KRW'},
+    {id:'c3',time:'',name:'影島海女村 🦪',tag:'food',note:'午餐',amount:null,currency:'KRW'},
+    {id:'c4',time:'',name:'松島 海景咖啡廳 ☕',tag:'food',note:'',amount:null,currency:'KRW'},
+    {id:'c5',time:'',name:'玻璃步道・海水浴場',tag:'activity',note:'',amount:null,currency:'KRW'},
+    {id:'c6',time:'',name:'烤扇貝鮑魚 🦪',tag:'food',note:'晚餐',amount:null,currency:'KRW'},
+    {id:'c7',time:'',name:'影島纜車',tag:'activity',note:'有Pass免預約・到21:00',amount:null,currency:'KRW'},
+  ]},
+  { id:'d4', label:'7/8', title:'甘川・南浦洞・影島大橋', activities:[
+    {id:'d1a',time:'08:00',name:'海雲台舒暢鱈魚湯 🐟',tag:'food',note:'早餐',amount:null,currency:'KRW'},
+    {id:'d2a',time:'10:00',name:'甘川文化村・拍手翻書',tag:'activity',note:'10:00開',amount:null,currency:'KRW'},
+    {id:'d3a',time:'',name:'扎嘎其市場 南浦洞',tag:'food',note:'午餐',amount:null,currency:'KRW'},
+    {id:'d4a',time:'14:00',name:'影島大橋直立',tag:'activity',note:'14:00 橋直立',amount:null,currency:'KRW'},
+    {id:'d5a',time:'',name:'BIFF廣場 晚餐 🎬',tag:'food',note:'晚餐',amount:null,currency:'KRW'},
+    {id:'d6a',time:'',name:'樂天市場 購物 🛒',tag:'shop',note:'',amount:null,currency:'KRW'},
+  ]},
+  { id:'d5', label:'7/9', title:'廣安・Running Man・西面', activities:[
+    {id:'e1',time:'09:00',name:'廣安李 Working Holiday ☕',tag:'food',note:'早餐',amount:null,currency:'KRW'},
+    {id:'e2',time:'11:00',name:'Running Man 體驗館 🎮',tag:'activity',note:'11:00開・⚠️ 需預約',amount:null,currency:'KRW'},
+    {id:'e3',time:'',name:'西面咖啡街 點心',tag:'food',note:'',amount:null,currency:'KRW'},
+    {id:'e4',time:'',name:'西面 Lasoop 晚餐',tag:'food',note:'晚餐',amount:null,currency:'KRW'},
+    {id:'e5',time:'',name:'逛街購物',tag:'shop',note:'',amount:null,currency:'KRW'},
+    {id:'e6',time:'',name:'烤鰻魚定食 🐟',tag:'food',note:'宵夜',amount:null,currency:'KRW'},
+  ]},
+  { id:'d6', label:'7/10', title:'回台灣 ✈️', activities:[
+    {id:'f1',time:'',name:'買早餐・退房',tag:'hotel',note:'',amount:null,currency:'KRW'},
+    {id:'f2',time:'11:30',name:'搭飛機回台 ✈️',tag:'transport',note:'11:30 起飛',amount:null,currency:'KRW'},
+  ]},
+];
+
+const INITIAL_CHECKS = [
+  {id:'chk1',label:'釜山 Pass',done:true},
+  {id:'chk2',label:'eSIM',done:true},
+  {id:'chk3',label:'預約鑽石遊艇',done:false},
+  {id:'chk4',label:'預約 Running Man 體驗館',done:false},
+];
+
+// ── STATE ─────────────────────────────────────────────────
+function load(){try{const s=localStorage.getItem('busan2025');return s?JSON.parse(s):null;}catch{return null;}}
+function save(){localStorage.setItem('busan2025',JSON.stringify({days,checks,exchangeRate,displayCurrency}));}
+
+let saved=load();
+let days=saved?saved.days:INITIAL_DAYS;
+let checks=saved?saved.checks:INITIAL_CHECKS;
+let exchangeRate=saved?saved.exchangeRate:0.023;
+let displayCurrency=saved?saved.displayCurrency:'KRW';
+
+// ── HELPERS ───────────────────────────────────────────────
+const TAG_LABELS={food:'🍽️ 餐飲',transport:'🚃 交通',activity:'🎡 活動',shop:'🛍️ 購物',hotel:'🏨 住宿'};
+const TAG_COLORS={food:'#e67e22',transport:'#1e8449',activity:'#1a5276',shop:'#cb4335',hotel:'#6c3483'};
+const sym=()=>displayCurrency==='KRW'?'₩':'NT$';
+
+function toDisplay(amount,origCur){
+  if(amount==null||amount==='')return null;
+  const v=Number(amount);
+  if(origCur===displayCurrency)return v;
+  return displayCurrency==='TWD'?v*exchangeRate:v/exchangeRate;
+}
+
+function fmtAmt(amount,origCur){
+  const v=toDisplay(amount,origCur);
+  if(v==null)return null;
+  return sym()+Math.round(v).toLocaleString();
+}
+
+function dayTotal(day){
+  return day.activities.reduce((s,a)=>{
+    const v=toDisplay(a.amount,a.currency);
+    return s+(v||0);
+  },0);
+}
+function grandTotal(){return days.reduce((s,d)=>s+dayTotal(d),0);}
+function catTotals(){
+  const m={food:0,transport:0,activity:0,shop:0,hotel:0};
+  days.forEach(d=>d.activities.forEach(a=>{const v=toDisplay(a.amount,a.currency);if(v)m[a.tag]=(m[a.tag]||0)+v;}));
+  return m;
+}
+
+// ── MODAL CONTROL ──────────────────────────────────────────
+let editingActId=null, editingDayId=null;
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// click outside sheet to close
+document.addEventListener('click',e=>{
+  ['amtModal','addModal'].forEach(id=>{
+    const ov=document.getElementById(id);
+    if(ov.classList.contains('open')&&e.target===ov)closeModal(id);
+  });
+});
+
+// ── AMOUNT MODAL ──────────────────────────────────────────
+function openAmtModal(actId,dayId){
+  editingActId=actId; editingDayId=dayId;
+  const day=days.find(d=>d.id===dayId);
+  const act=day.activities.find(a=>a.id===actId);
+  document.getElementById('amtModalTitle').textContent='💰 '+act.name;
+  document.getElementById('amtInput').value=act.amount!=null?act.amount:'';
+  document.getElementById('curInput').value=act.currency||'KRW';
+  document.getElementById('noteInput').value=act.note||'';
+  openModal('amtModal');
+  setTimeout(()=>document.getElementById('amtInput').focus(),200);
+}
+
+function saveAmount(){
+  const day=days.find(d=>d.id===editingDayId);
+  const act=day.activities.find(a=>a.id===editingActId);
+  const raw=document.getElementById('amtInput').value;
+  act.amount=raw===''?null:Number(raw);
+  act.currency=document.getElementById('curInput').value;
+  act.note=document.getElementById('noteInput').value.trim();
+  save(); closeModal('amtModal'); renderAll();
+}
+
+function clearAmount(){
+  const day=days.find(d=>d.id===editingDayId);
+  const act=day.activities.find(a=>a.id===editingActId);
+  act.amount=null;
+  save(); closeModal('amtModal'); renderAll();
+}
+
+// ── ADD MODAL ──────────────────────────────────────────────
+let addTargetDayId=null;
+
+function openAddModal(dayId){
+  addTargetDayId=dayId;
+  const day=days.find(d=>d.id===dayId);
+  document.getElementById('addModalTitle').textContent='新增項目 — '+day.label+' '+day.title;
+  document.getElementById('newTime').value='';
+  document.getElementById('newName').value='';
+  document.getElementById('newNote').value='';
+  document.getElementById('newTag').value='food';
+  openModal('addModal');
+  setTimeout(()=>document.getElementById('newName').focus(),200);
+}
+
+function confirmAdd(){
+  const name=document.getElementById('newName').value.trim();
+  if(!name)return;
+  const day=days.find(d=>d.id===addTargetDayId);
+  day.activities.push({
+    id:'x'+Date.now(),
+    time:document.getElementById('newTime').value.trim(),
+    name,
+    tag:document.getElementById('newTag').value,
+    note:document.getElementById('newNote').value.trim(),
+    amount:null,
+    currency:'KRW'
+  });
+  save(); closeModal('addModal'); renderAll();
+}
+
+// ── DELETE ─────────────────────────────────────────────────
+function deleteActivity(actId,dayId){
+  if(!confirm('確定刪除這個項目？'))return;
+  const day=days.find(d=>d.id===dayId);
+  day.activities=day.activities.filter(a=>a.id!==actId);
+  save(); renderAll();
+}
+
+// ── DRAG & DROP ────────────────────────────────────────────
+let dragId=null,dragDayId=null;
+
+function initDrag(){
+  document.querySelectorAll('.activity-item').forEach(el=>{
+    el.addEventListener('dragstart',e=>{
+      dragId=el.dataset.id; dragDayId=el.dataset.day;
+      setTimeout(()=>el.classList.add('dragging'),0);
+    });
+    el.addEventListener('dragend',()=>{
+      el.classList.remove('dragging');
+      document.querySelectorAll('.activity-item').forEach(e=>e.classList.remove('drag-over'));
+    });
+    el.addEventListener('dragover',e=>{
+      e.preventDefault();
+      document.querySelectorAll('.activity-item').forEach(e=>e.classList.remove('drag-over'));
+      if(el.dataset.id!==dragId)el.classList.add('drag-over');
+    });
+    el.addEventListener('drop',e=>{
+      e.preventDefault();
+      const tid=el.dataset.id,tday=el.dataset.day;
+      if(tid===dragId)return;
+      const srcDay=days.find(d=>d.id===dragDayId);
+      const tgtDay=days.find(d=>d.id===tday);
+      const si=srcDay.activities.findIndex(a=>a.id===dragId);
+      const ti=tgtDay.activities.findIndex(a=>a.id===tid);
+      const[moved]=srcDay.activities.splice(si,1);
+      tgtDay.activities.splice(ti,0,moved);
+      save(); renderAll();
+    });
+  });
+}
+
+// ── RENDER ITINERARY ───────────────────────────────────────
+function renderItinerary(){
+  const el=document.getElementById('tab-itinerary');
+  el.innerHTML='';
+  days.forEach(day=>{
+    const total=dayTotal(day);
+    const card=document.createElement('div');
+    card.className='day-card';
+    card.dataset.dayId=day.id;
+    card.innerHTML=`
+      <div class="day-header" onclick="toggleDay('${day.id}')">
+        <div class="day-header-left">
+          <span class="day-badge">${day.label}</span>
+          <span class="day-title">${day.title}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${total>0?`<span class="day-total">${sym()}${Math.round(total).toLocaleString()}</span>`:''}
+          <button onclick="event.stopPropagation();quickAddExpense('${day.id}')" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">＋記帳</button>
+          <span class="day-chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <div class="acts-list">
+          ${day.activities.map(a=>renderAct(a,day.id)).join('')}
+        </div>
+        <button class="add-activity-btn" onclick="openAddModal('${day.id}')">＋ 新增項目</button>
+      </div>`;
+    el.appendChild(card);
+  });
+  initDrag();
+}
+
+function renderAct(a,dayId){
+  const disp=fmtAmt(a.amount,a.currency);
+  return `<div class="activity-item" draggable="true" data-id="${a.id}" data-day="${dayId}">
+    <span class="drag-handle">⠿</span>
+    <div class="activity-content">
+      ${a.time?`<div class="activity-time">${a.time}</div>`:''}
+      <div class="activity-name">${a.name}</div>
+      ${a.note?`<div class="activity-note">${a.note}</div>`:''}
+      <span class="activity-tag tag-${a.tag}">${TAG_LABELS[a.tag]}</span>
+    </div>
+    <div class="activity-right">
+      <span class="amount-pill ${disp?'':'empty'}">${disp||'未記帳'}</span>
+      <button class="edit-btn" onclick="openAmtModal('${a.id}','${dayId}')">✏️ 記帳</button>
+      <button class="del-btn" onclick="deleteActivity('${a.id}','${dayId}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function toggleDay(dayId){
+  document.querySelector(`.day-card[data-day-id="${dayId}"]`).classList.toggle('collapsed');
+}
+
+// ── RENDER CHECKLIST ───────────────────────────────────────
+function renderChecklist(){
+  const el=document.getElementById('tab-checklist');
+  const done=checks.filter(c=>c.done).length;
+  el.innerHTML=`<div class="checklist-section">
+    <h3>行前必辦 ${done}/${checks.length}</h3>
+    ${checks.map(c=>`<div class="check-item ${c.done?'done':''}" onclick="toggleCheck('${c.id}')">
+      <div class="check-box"></div>
+      <span class="check-label">${c.label}</span>
+    </div>`).join('')}
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <input type="text" id="newCheckInput" placeholder="新增待辦…" style="flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-size:.88rem;font-family:inherit" onkeydown="if(event.key==='Enter')addCheck()">
+      <button onclick="addCheck()" style="padding:9px 16px;background:var(--sea);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:.88rem;cursor:pointer;font-weight:700">＋</button>
+    </div>
+  </div>`;
+}
+
+function toggleCheck(id){const c=checks.find(x=>x.id===id);c.done=!c.done;save();renderChecklist();}
+function addCheck(){
+  const inp=document.getElementById('newCheckInput');
+  const v=inp.value.trim();
+  if(!v)return;
+  checks.push({id:'c'+Date.now(),label:v,done:false});
+  save();renderChecklist();
+}
+
+// ── RENDER SUMMARY ─────────────────────────────────────────
+let summaryFilter='';
+
+function renderSummary(){
+  const el=document.getElementById('tab-summary');
+  const total=grandTotal();
+  const cats=catTotals();
+
+  // build flat list of all activities
+  const allActs=[];
+  days.forEach(d=>d.activities.forEach(a=>allActs.push({...a,dayId:d.id,dayLabel:d.label})));
+  const kw=summaryFilter.toLowerCase();
+  const filtered=kw?allActs.filter(a=>a.name.toLowerCase().includes(kw)||a.note.toLowerCase().includes(kw)):allActs;
+
+  el.innerHTML=`
+    <div class="rate-bar">
+      <span>匯率 1 KRW =</span>
+      <input type="number" id="rateInput" value="${exchangeRate}" step="0.001">
+      <span>TWD</span>
+      <button onclick="updateRate()" style="padding:4px 12px;background:var(--sea);color:#fff;border:none;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit">更新</button>
+    </div>
+    <div class="currency-bar">
+      <button class="cur-btn ${displayCurrency==='KRW'?'active':''}" onclick="setCurrency('KRW')">₩ 韓元 KRW</button>
+      <button class="cur-btn ${displayCurrency==='TWD'?'active':''}" onclick="setCurrency('TWD')">NT$ 台幣 TWD</button>
+    </div>
+    <div class="summary-card">
+      <h3>旅行總計</h3>
+      <div class="total-big">${sym()}${Math.round(total).toLocaleString()}</div>
+      <div class="total-sub">已記帳項目合計</div>
+    </div>
+    <div class="summary-card">
+      <h3>每日明細</h3>
+      ${days.map(d=>{const dt=dayTotal(d);return`<div class="summary-row">
+        <span class="lbl">${d.label} ${d.title}</span>
+        <span style="font-weight:700">${dt>0?sym()+Math.round(dt).toLocaleString():'—'}</span>
+      </div>`;}).join('')}
+    </div>
+    <div class="summary-card">
+      <h3>類別分析</h3>
+      ${Object.entries(cats).map(([k,v])=>`<div class="summary-row">
+        <span><span class="cat-dot" style="background:${TAG_COLORS[k]}"></span>${TAG_LABELS[k]}</span>
+        <span style="font-weight:700;color:${TAG_COLORS[k]}">${v>0?sym()+Math.round(v).toLocaleString():'—'}</span>
+      </div>`).join('')}
+    </div>
+    <div class="summary-card">
+      <h3>所有項目記帳</h3>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <input type="text" id="sumSearch" placeholder="🔍 搜尋項目…" value="${summaryFilter}"
+          oninput="summaryFilter=this.value;renderSummary()"
+          style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-family:inherit">
+        ${summaryFilter?`<button onclick="summaryFilter='';renderSummary()" style="padding:8px 12px;border:none;border-radius:8px;background:var(--sand-dark);cursor:pointer;font-size:.8rem">✕</button>`:''}
+      </div>
+      ${filtered.length===0?`<div style="text-align:center;color:var(--muted);padding:20px;font-size:.85rem">查無項目</div>`:''}
+      ${filtered.map(a=>{
+        const disp=fmtAmt(a.amount,a.currency);
+        return`<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f5f5f5;">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.65rem;color:var(--sea);font-weight:700;margin-bottom:1px">${a.dayLabel}${a.time?' · '+a.time:''}</div>
+            <div style="font-size:.86rem;font-weight:500;line-height:1.3">${a.name}</div>
+            ${a.note?`<div style="font-size:.7rem;color:var(--muted)">${a.note}</div>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+            <span style="font-size:.82rem;font-weight:700;color:${disp?'var(--coral)':'#ccc'}">${disp||'未記帳'}</span>
+            <button class="edit-btn" onclick="openAmtModal('${a.id}','${a.dayId}')">✏️ 記帳</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function updateRate(){
+  const v=parseFloat(document.getElementById('rateInput').value);
+  if(!isNaN(v)&&v>0){exchangeRate=v;save();renderAll();}
+}
+function setCurrency(cur){displayCurrency=cur;save();renderAll();}
+
+// ── TABS ───────────────────────────────────────────────────
+function switchTab(tab){
+  ['itinerary','checklist','summary'].forEach((t,i)=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'':'none';
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
+  });
+  renderAll();
+}
+
+// ── QUICK ADD EXPENSE ──────────────────────────────────────
+function quickAddExpense(dayId){
+  const day=days.find(d=>d.id===dayId);
+  // create a temporary item then open amt modal
+  const newAct={id:'q'+Date.now(),time:'',name:'臨時支出',tag:'food',note:'',amount:null,currency:'KRW'};
+  // open a combined modal: name + amount in one go
+  quickDayId=dayId;
+  document.getElementById('quickDayLabel').textContent=day.label+' '+day.title;
+  document.getElementById('quickName').value='';
+  document.getElementById('quickAmt').value='';
+  document.getElementById('quickCur').value='KRW';
+  document.getElementById('quickNote').value='';
+  document.getElementById('quickTag').value='food';
+  openModal('quickModal');
+  setTimeout(()=>document.getElementById('quickName').focus(),200);
+}
+
+let quickDayId=null;
+function confirmQuick(){
+  const name=document.getElementById('quickName').value.trim()||'臨時支出';
+  const raw=document.getElementById('quickAmt').value;
+  const day=days.find(d=>d.id===quickDayId);
+  day.activities.push({
+    id:'q'+Date.now(),
+    time:'',
+    name,
+    tag:document.getElementById('quickTag').value,
+    note:document.getElementById('quickNote').value.trim(),
+    amount:raw===''?null:Number(raw),
+    currency:document.getElementById('quickCur').value
+  });
+  save();closeModal('quickModal');renderAll();
+}
+
+function renderAll(){renderItinerary();renderChecklist();renderSummary();}
+renderAll();
+</script>
+
+<!-- 快速記帳 MODAL -->
+<div class="overlay" id="quickModal">
+  <div class="sheet">
+    <h3>＋ 快速記帳</h3>
+    <div id="quickDayLabel" style="font-size:.8rem;color:var(--muted);margin-bottom:12px"></div>
+    <label>名稱</label>
+    <input type="text" id="quickName" placeholder="例：便利商店、計程車…">
+    <label>金額</label>
+    <input type="number" id="quickAmt" inputmode="numeric" placeholder="例：15000">
+    <label>幣別</label>
+    <select id="quickCur">
+      <option value="KRW">₩ 韓元 KRW</option>
+      <option value="TWD">NT$ 台幣 TWD</option>
+    </select>
+    <label>類別</label>
+    <select id="quickTag">
+      <option value="food">🍽️ 餐飲</option>
+      <option value="transport">🚃 交通</option>
+      <option value="activity">🎡 活動</option>
+      <option value="shop">🛍️ 購物</option>
+      <option value="hotel">🏨 住宿</option>
+    </select>
+    <label>備註（選填）</label>
+    <input type="text" id="quickNote" placeholder="備用資訊">
+    <div class="sheet-btns">
+      <button class="btn-secondary" onclick="closeModal('quickModal')">取消</button>
+      <button class="btn-primary" onclick="confirmQuick()">新增並記帳</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
